@@ -126,9 +126,10 @@ function notifyOpponent(message, by) {
 }
 
 function handleClientDisconnect(name) {
+    console.log(`<${name}> disconnected.`);
     const opponent = matches[name];
     if (playersSockets[opponent] !== undefined) {
-        console.log(`<${name}> disconnected, notifying <${opponent}>.`);
+        console.log(`Notifying opponent <${opponent}>.`);
         notifyOpponent('opponent disconnected', name);
     }
 
@@ -182,10 +183,12 @@ wss.on('connection', (ws) => {
         if (objMessage.name !== undefined) {
             const {name, settings} = objMessage;
             if (activeNames.includes(name)) {
+                console.log(`Name ${name} is taken.`);
                 ws.send(JSON.stringify({notification: 'duplicate'}));
                 return;
             }
            
+            console.log(`Client ${name} joined matchmaking.`);
             playersSockets[name] = ws;
             playersSettings[name] = settings;
             activeNames.push(name);
@@ -200,8 +203,10 @@ wss.on('connection', (ws) => {
 
                 const gameSettings = playersSettings[nameToJoin];
                 const whiteName = pickWhitename(nameToJoin, by, gameSettings);
-                createGame(whiteName, matches[whiteName], 
+                const game = createGame(whiteName, matches[whiteName], 
                     gameSettings.time, gameSettings.increment, gameSettings.color);
+
+                console.log(`Started game: ${game.whiteName} vs ${game.blackName}; ${game.whiteClock / 1000 / 60}|${game.increment / 1000}; ${game.color}`);
 
                 sendMatchAttributes(whiteName)
                 sendOutAvailableOpponents();
