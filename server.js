@@ -13,6 +13,7 @@ let playersSettings = {}; // {'name': {time, increment, color}}
 let matches = {}; // match ... 'name1': 'name2', 'name2': 'name1'
 let activeNames = [];
 let games = {};
+let keeperClientIntervalId = null;
 
 function createGame(whiteName, blackName, startClockMillis, incrementMillis, color) {
     const game = {        
@@ -174,16 +175,31 @@ function pickWhitename(nameToJoin, by, settings) {
     return color === 'white' ? nameToJoin : by;
 }
 
+function keepServerAwake() {
+    if (keeperClientIntervalId === null) {
+        console.log('Setting interval for keeperClient.');
+        keeperClientIntervalId = setInterval(() => {
+            keeperClient = new WebSocket('wss://chess-project-backend-jakubdurkac.onrender.com');
+            setTimeout(() => {
+                keeperClient.close();
+            }, 5 * 60 * 1000); // auto disconnect keeperClient after 5 minutes
+            
+            if (activeNames.length === 0) {
+                console.log('Clearing interval for keeperClient, as there are no players.');
+                clearInterval(keeperClientIntervalId);
+                keeperClientIntervalId = null;
+            }
+        }, 10 * 60 * 1000); // create keeperClient every 10 minutes;
+    }
+}
+
 wss.on('connection', (ws) => {
     console.log(`A new client connected`);
+    keepServerAwake();
+
     ws.on('message', (message) => {     
         const strMessage = message.toString();
-        if (strMessage === 'ping') {
-            ws.send('pong');
-            return;
-        }
-
-        const objMessage = JSON.parse(strMessage);    
+        const objMessage = JSON.parse(strMessage);
         if (objMessage.name !== undefined) {
             const {name, settings} = objMessage;
             if (activeNames.includes(name)) {
