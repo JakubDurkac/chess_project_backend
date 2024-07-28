@@ -195,7 +195,6 @@ function keepServerAwake() {
 
 wss.on('connection', (ws) => {
     console.log(`A new client connected`);
-    keepServerAwake();
 
     ws.on('message', (message) => {     
         const strMessage = message.toString();
@@ -212,6 +211,7 @@ wss.on('connection', (ws) => {
             playersSockets[name] = ws;
             playersSettings[name] = settings;
             activeNames.push(name);
+            keepServerAwake();
 
             sendOutAvailableOpponents();
     
@@ -276,6 +276,7 @@ wss.on('connection', (ws) => {
             }
         }
 
+        console.log('Active players:');
         for (const name in playersSockets) {
             console.log(name);
         }
