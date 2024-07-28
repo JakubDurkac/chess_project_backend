@@ -256,10 +256,6 @@ wss.on('connection', (ws) => {
             }
         }
 
-        // Logs
-        console.log('Matches:');
-        console.log(matches);
-        console.log('Active Players:');
         for (const name in playersSockets) {
             console.log(name);
         }
@@ -278,8 +274,16 @@ server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-const shutdown = () => {
-    console.log('Shutting down server...');
+server.on('error', (err) => {
+    console.error('Server error:', err);
+});
+
+wss.on('error', (err) => {
+    console.error('WebSocket server error:', err);
+});
+
+const shutdown = (signal) => {
+    console.log(`Received ${signal} - Shutting down server...`);
     wss.close(() => {
         console.log('WebSocket server closed');
         server.close(() => {
@@ -289,5 +293,13 @@ const shutdown = () => {
     });
 };
 
-process.on('SIGINT', shutdown);
-process.on('SIGTERM', shutdown);
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled rejection:', reason);
+});
