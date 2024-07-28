@@ -126,7 +126,6 @@ function notifyOpponent(message, by) {
 }
 
 function handleClientDisconnect(name) {
-    console.log(`<${name}> disconnected.`);
     const opponent = matches[name];
     if (playersSockets[opponent] !== undefined) {
         console.log(`Notifying opponent <${opponent}>.`);
@@ -179,6 +178,11 @@ wss.on('connection', (ws) => {
     console.log(`A new client connected`);
     ws.on('message', (message) => {     
         const strMessage = message.toString();
+        if (strMessage === 'ping') {
+            ws.send('pong');
+            return;
+        }
+
         const objMessage = JSON.parse(strMessage);    
         if (objMessage.name !== undefined) {
             const {name, settings} = objMessage;
@@ -246,11 +250,11 @@ wss.on('connection', (ws) => {
         }
     });
 
-    ws.on('close', () => {
+    ws.on('close', (code, reason) => {
         for (let i = 0; i < activeNames.length; i++) {
             const name = activeNames[i];
             if (playersSockets[name] === ws) {
-                console.log(`Client <${name}> disconnected.`);
+                console.log(`Client ${name} disconnected. Code: ${code}, Reason: ${reason}`);
                 handleClientDisconnect(name);
                 break;
             }
