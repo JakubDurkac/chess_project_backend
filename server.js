@@ -123,7 +123,10 @@ function restartGame(restartInitiatorName) {
 }
 
 function notifyOpponent(message, by) {
-    playersSockets[matches[by]].send(JSON.stringify({notification: message}));
+    const opponentSocket = playersSockets[matches[by]];
+    if (opponentSocket) {
+        opponentSocket.send(JSON.stringify({notification: message}));
+    }
 }
 
 function handleClientDisconnect(name) {
@@ -166,6 +169,10 @@ function sendOpponentsList(toName, opponentsList) {
     }));
 }
 
+function sendChatMessage(message, by) {
+    playersSockets[matches[by]].send(JSON.stringify({'chat': message, 'by': by}));
+}
+
 function pickWhitename(nameToJoin, by, settings) {
     const {color} = settings;
     if (color === 'random') {
@@ -179,6 +186,7 @@ function keepServerAwake() {
     if (keeperClientIntervalId === null) {
         console.log('Setting interval for keeperClient.');
         keeperClientIntervalId = setInterval(() => {
+            // keeperClient = new WebSocket('ws://localhost:3000');
             keeperClient = new WebSocket('wss://chess-project-backend-jakubdurkac.onrender.com');
             setTimeout(() => {
                 keeperClient.close();
@@ -262,6 +270,9 @@ wss.on('connection', (ws) => {
 
             } else if (message === 'draw declined') {
                 notifyOpponent(message, by);
+
+            } else if (message === 'chat') {
+                sendChatMessage(objMessage.notification.chatContent, by);
             }
         }
     });
