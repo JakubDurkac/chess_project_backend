@@ -1,4 +1,4 @@
-# moodychess (backend)
+# [moodychess.com](https://moodychess.com/) (backend)
 A backend solution for the moodychess web app.
 - **backend** server written in **Javascript** using **Node.js**, **Express** and **WebSocket**, deployed using [Render](https://render.com/)
 - for **frontend** look [here](https://github.com/JakubDurkac/chess_project)
