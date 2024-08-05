@@ -183,11 +183,13 @@ function pickWhitename(nameToJoin, by, settings) {
 }
 
 function keepServerAwake() {
+    // for purposes of free render.com servers that turn
+    // off after 15 minutes without connection requests
     if (keeperClientIntervalId === null) {
         console.log('Setting interval for keeperClient.');
         keeperClientIntervalId = setInterval(() => {
-            // keeperClient = new WebSocket('ws://localhost:3000');
-            keeperClient = new WebSocket('wss://chess-project-backend-jakubdurkac.onrender.com');
+            keeperClient = new WebSocket('ws://localhost:3000');
+            // keeperClient = new WebSocket('wss://chess-project-backend-jakubdurkac.onrender.com');
             setTimeout(() => {
                 keeperClient.close();
             }, 5 * 60 * 1000); // auto disconnect keeperClient after 5 minutes
@@ -202,7 +204,7 @@ function keepServerAwake() {
 }
 
 wss.on('connection', (ws) => {
-    console.log(`A new client connected`);
+    console.log(`A new client connected.`);
 
     ws.on('message', (message) => {     
         const strMessage = message.toString();
@@ -219,7 +221,7 @@ wss.on('connection', (ws) => {
             playersSockets[name] = ws;
             playersSettings[name] = settings;
             activeNames.push(name);
-            keepServerAwake();
+            // keepServerAwake(); // to generate connection requests if needed
 
             sendOutAvailableOpponents();
     
@@ -287,10 +289,7 @@ wss.on('connection', (ws) => {
             }
         }
 
-        console.log('Active players:');
-        for (const name in playersSockets) {
-            console.log(name);
-        }
+        console.log('Active players:', activeNames);
     });
 });
 
